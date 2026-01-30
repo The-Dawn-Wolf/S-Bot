@@ -13,16 +13,43 @@ from dotenv import load_dotenv
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
+# Added ListFlow for better PDF structure
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
 # 1. SETUP & CUSTOM CSS
 load_dotenv()
 st.set_page_config(page_title="Shelfie AI | Executive Suite", layout="wide")
 
+# Updated CSS: Fixed the truncation ("...") issue and the vertical button issue
 st.markdown("""
 <style>
-    div.stButton > button { width: 100% !important; white-space: nowrap !important; }
-    [data-testid="column"] { min-width: 200px !important; }
+    /* Force buttons to stay horizontal and never wrap vertically */
+    div.stButton > button { 
+        width: 100% !important; 
+        white-space: nowrap !important; 
+        display: block !important;
+    }
+    
+    /* Fix for text truncation: Ensures metrics and headers wrap text instead of using "..." */
+    [data-testid="stMetricValue"] > div {
+        white-space: normal !important;
+        word-break: break-word !important;
+        font-size: 1.8rem !important;
+    }
+    
+    [data-testid="column"] { 
+        min-width: 200px !important; 
+    }
+    
+    /* Styling for the new Safety Reason box */
+    .safety-box {
+        background-color: #fff4f4;
+        padding: 15px;
+        border-radius: 10px;
+        border-left: 5px solid #ff4b4b;
+        margin-bottom: 20px;
+    }
+    
     .stMetric { background-color: #f0f2f6; padding: 10px; border-radius: 10px; }
 </style>
 """, unsafe_allow_html=True)
@@ -46,10 +73,12 @@ def split_chapters(text):
     return chapters
 
 def analyze_document(text, title):
-    """Main AI Brain for full document analysis."""
+    """Main AI Brain for full document analysis with safety reasoning."""
     system_prompt = (
         "You are an Elite Literary Critic. Return a JSON object with: "
-        "'genre', 'sentiment', 'tone', 'safety_level' (Low/Med/High), 'protagonist', 'protagonist_desc', "
+        "'genre', 'sentiment', 'tone', 'safety_level' (Low/Med/High), "
+        "'safety_reasoning' (Explain why this safety level was chosen), "
+        "'protagonist', 'protagonist_desc', "
         "'summary_v1' (Concise), 'summary_v2' (Detailed), 'summary_v3' (Thematic), 'takeaways'."
     )
     try:
@@ -73,7 +102,27 @@ def analyze_chapter_safety(ch_title, content):
         return json.loads(response.choices[0].message.content)
     except: return {"safety": "Unknown", "profanity_score": 0}
 
-# 3. UI LAYOUT
+# 3. PDF ENGINE (Updated to include Safety Reasoning)
+def generate_pdf(data):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=LETTER)
+    styles = getSampleStyleSheet()
+    story = []
+
+    story.append(Paragraph(f"Shelfie AI: Intelligence Report", styles['Title']))
+    story.append(Paragraph(f"Document: {data['title']} | Analyst: {data['user']}", styles['Normal']))
+    story.append(Spacer(1, 12))
+
+    story.append(Paragraph("Safety Assessment", styles['Heading3']))
+    story.append(Paragraph(f"Level: {data['safety_level']}", styles['Normal']))
+    story.append(Paragraph(f"Reasoning: {data['safety_reasoning']}", styles['Italic']))
+    story.append(Spacer(1, 12))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+# 4. UI LAYOUT
 st.title("Shelfie Bot - Full Intelligence Executive Suite")
 st.markdown("---")
 
@@ -90,7 +139,7 @@ with col_in:
     
     if st.button("🚀 GENERATE FULL INTELLIGENCE REPORT", use_container_width=True):
         if user_text:
-            # Word Count & Reading Time
+            # Word Count & Reading Time based on 238 WPM
             words = len(user_text.split())
             read_time = f"{max(1, round(words / 238))} min" 
             
@@ -113,12 +162,20 @@ with col_out:
         r = st.session_state.active_report
         st.subheader(f"Report: {r['title']}")
         
-        # TOP METRICS
+        # TOP METRICS - CSS fix ensures long tones wrap instead of "..."
         c1, c2, c3, c4 = st.columns(4)
         c1.metric("Words", r['word_count'])
         c2.metric("Reading Time", r['reading_time'])
         c3.metric("Safety", r['safety_level'])
         c4.metric("Tone", r['tone'])
+
+        # NEW: SAFETY REASONING BOX
+        st.markdown(f"""
+        <div class="safety-box">
+            <strong>🛡️ Safety Reasoning:</strong><br>
+            {r['safety_reasoning']}
+        </div>
+        """, unsafe_allow_html=True)
 
         # PROTAGONIST BOX
         st.info(f"👤 **Protagonist:** {r['protagonist']} \n\n {r['protagonist_desc']}")
@@ -140,6 +197,7 @@ with col_out:
 
 st.sidebar.title("📚 Vault")
 for i, h in enumerate(reversed(st.session_state.history)):
-    st.sidebar.button(f"📄 {h['title']}", key=f"h_{i}")
+    if st.sidebar.button(f"📄 {h['title']}", key=f"h_{i}"):
+        st.session_state.active_report = h
 
-st.caption("Shelfie AI v2.0 | Full Narrative Intelligence Deployed")
+st.caption("Shelfie AI v2.1 | Enhanced Context & Layout Optimization")
