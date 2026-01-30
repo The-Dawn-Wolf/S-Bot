@@ -63,7 +63,7 @@ col_input, col_output = st.columns([1, 1], gap="large")
 with col_input:
     st.subheader("Source Content")
     user_text = st.text_area("Paste text here...", height=500)
-    analyze_button = st.button("🚀 GENERATE EXECUTIVE REPORT", use_container_width=True)
+    analyze_button = st.button("🚀 GENERATE EXECUTIVE REPORT", width=True)
 
 with col_output:
     st.subheader("Intelligence Report")
@@ -210,7 +210,7 @@ st.caption("Powered by Lumina Neural Engine | v1.2")
 #     book_title = st.text_input("Novel/Book Title", placeholder="e.g. The Great Gatsby")
 #     user_text = st.text_area("Paste text or chapter excerpt here...", height=400)
     
-#     if st.button("🚀 RUN DEEP ANALYSIS", use_container_width=True):
+#     if st.button("🚀 RUN DEEP ANALYSIS", width=True):
 #         if not book_title or len(user_text) < 200:
 #             st.warning("Please provide a title and at least 200 characters of text.")
 #         else:

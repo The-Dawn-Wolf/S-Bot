@@ -126,7 +126,7 @@ with col_input:
         if not book_title: book_title = uploaded_file.name
 
     user_text = st.text_area("Content Analysis Window", value=raw_text, height=350)
-    analyze_button = st.button("🚀 GENERATE EXECUTIVE REPORT", use_container_width=True)
+    analyze_button = st.button("🚀 GENERATE EXECUTIVE REPORT", width=True)
 
 with col_output:
     st.subheader("Intelligence Report")
@@ -177,7 +177,7 @@ with col_output:
                         st.markdown("### Feature Sentiment Map")
                         df = pd.DataFrame(list(report_data['feature_sentiment'].items()), columns=['Feature', 'Score'])
                         fig = px.bar(df, x='Feature', y='Score', color='Score', color_continuous_scale='RdYlGn', range_y=[0,10])
-                        st.plotly_chart(fig, use_container_width=True)
+                        st.plotly_chart(fig, width=True)
 
                     st.markdown("### Executive Summary")
                     st.write(report_data['summary'])
@@ -194,7 +194,7 @@ with col_output:
                     
                     st.markdown("---")
                     pdf_bytes = generate_pdf(report_data)
-                    st.download_button("📄 EXPORT TO PDF", pdf_bytes, f"Shelfie_Report_{report_data['title']}.pdf", "application/pdf", use_container_width=True)
+                    st.download_button("📄 EXPORT TO PDF", pdf_bytes, f"Shelfie_Report_{report_data['title']}.pdf", "application/pdf", width=True)
 
 st.markdown("---")
 st.caption("Shelfie AI v1.7 | System Admin Status: Active")

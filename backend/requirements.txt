@@ -1,9 +1,0 @@
-streamlit
-groq
-supabase
-fpdf
-pandas
-fastapi
-uvicorn
-groq
-python-multipart
