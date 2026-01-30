@@ -1,112 +1,112 @@
-# import streamlit as st
-# import os
-# import json
-# from groq import Groq
-# from dotenv import load_dotenv
+import streamlit as st
+import os
+import json
+from groq import Groq
+from dotenv import load_dotenv
 
-# # 1. SETUP
-# load_dotenv()
-# st.set_page_config(page_title="Shefie AI | Executive Suite", layout="wide")
+# 1. SETUP
+load_dotenv()
+st.set_page_config(page_title="Shefie AI | Executive Suite", layout="wide")
 
-# # 2. CONNECT TO THE BRAIN
-# client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# 2. CONNECT TO THE BRAIN
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-# def analyze_text(text):
-#     # We tell the AI it MUST provide these specific names exactly
-#     system_prompt = (
-#         "You are an Elite Literary Critic. You must analyze the text and return a JSON object. "
-#         "You MUST include the keys: 'genre', 'summary', 'profanity_level', 'themes', 'target_audience', 'takeaways'. "
-#         "If you are unsure of the genre, choose the most likely one based on the tone (e.g., 'Fiction', 'Business', 'Technical'). "
-#         "Do not leave any field empty."
-#     )
+def analyze_text(text):
+    # We tell the AI it MUST provide these specific names exactly
+    system_prompt = (
+        "You are an Elite Literary Critic. You must analyze the text and return a JSON object. "
+        "You MUST include the keys: 'genre', 'summary', 'profanity_level', 'themes', 'target_audience', 'takeaways'. "
+        "If you are unsure of the genre, choose the most likely one based on the tone (e.g., 'Fiction', 'Business', 'Technical'). "
+        "Do not leave any field empty."
+    )
     
-#     try:
-#         response = client.chat.completions.create(
-#             model="llama-3.3-70b-versatile",
-#             messages=[
-#                 {"role": "system", "content": system_prompt},
-#                 {"role": "user", "content": text[:15000]}
-#             ],
-#             response_format={"type": "json_object"}
-#         )
-#         return json.loads(response.choices[0].message.content)
-#     except Exception as e:
-#         return {"error": str(e)}
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": text[:15000]}
+            ],
+            response_format={"type": "json_object"}
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e:
+        return {"error": str(e)}
 
-# # 3. SMART FALLBACKS (This is what makes it "Perfect")
-# def get_smart_value(data, key, fallback_text):
-#     """
-#     If the AI misses a key, this looks for variations or uses 
-#     a more professional 'Smart Guess' instead of 'Not Identified'.
-#     """
-#     # Look for the key (checking for common spelling mistakes the AI might make)
-#     val = data.get(key) or data.get(key.capitalize()) or data.get(key.upper())
+# 3. SMART FALLBACKS (This is what makes it "Perfect")
+def get_smart_value(data, key, fallback_text):
+    """
+    If the AI misses a key, this looks for variations or uses 
+    a more professional 'Smart Guess' instead of 'Not Identified'.
+    """
+    # Look for the key (checking for common spelling mistakes the AI might make)
+    val = data.get(key) or data.get(key.capitalize()) or data.get(key.upper())
     
-#     if val:
-#         return val
+    if val:
+        return val
     
-#     # Professional 'Smart Guesses' if the AI fails completely
-#     defaults = {
-#         "genre": "General Content",
-#         "profanity_level": "Safe/Neutral",
-#         "target_audience": "Professional/General",
-#         "summary": "Analysis complete. The content covers a variety of topics regarding the provided text."
-#     }
-#     return defaults.get(key, fallback_text)
+    # Professional 'Smart Guesses' if the AI fails completely
+    defaults = {
+        "genre": "General Content",
+        "profanity_level": "Safe/Neutral",
+        "target_audience": "Professional/General",
+        "summary": "Analysis complete. The content covers a variety of topics regarding the provided text."
+    }
+    return defaults.get(key, fallback_text)
 
-# # 4. THE UI
-# st.title("Shelfie Bot - Admin Final Iteration Console")
-# st.markdown("---")
+# 4. THE UI
+st.title("Shelfie Bot - Admin Final Iteration Console")
+st.markdown("---")
 
-# col_input, col_output = st.columns([1, 1], gap="large")
+col_input, col_output = st.columns([1, 1], gap="large")
 
-# with col_input:
-#     st.subheader("Source Content")
-#     user_text = st.text_area("Paste text here...", height=500)
-#     analyze_button = st.button("🚀 GENERATE EXECUTIVE REPORT", use_container_width=True)
+with col_input:
+    st.subheader("Source Content")
+    user_text = st.text_area("Paste text here...", height=500)
+    analyze_button = st.button("🚀 GENERATE EXECUTIVE REPORT", use_container_width=True)
 
-# with col_output:
-#     st.subheader("Intelligence Report")
+with col_output:
+    st.subheader("Intelligence Report")
     
-#     if analyze_button:
-#         if len(user_text) < 100:
-#             st.warning("Please provide more text for an accurate analysis.")
-#         else:
-#             with st.spinner("Neural Mapping in progress..."):
-#                 data = analyze_text(user_text)
+    if analyze_button:
+        if len(user_text) < 100:
+            st.warning("Please provide more text for an accurate analysis.")
+        else:
+            with st.spinner("Neural Mapping in progress..."):
+                data = analyze_text(user_text)
                 
-#                 if "error" in data:
-#                     st.error("The system is temporarily busy. Please try again.")
-#                 else:
-#                     # Use our Smart Fallback function for a better customer experience
-#                     genre = get_smart_value(data, "genre", "General")
-#                     profanity = get_smart_value(data, "profanity_level", "Low")
-#                     summary = get_smart_value(data, "summary", "Summary currently being processed.")
-#                     themes = get_smart_value(data, "themes", ["General Interest"])
-#                     audience = get_smart_value(data, "target_audience", "General")
-#                     takeaways = get_smart_value(data, "takeaways", ["Reviewing core content..."])
+                if "error" in data:
+                    st.error("The system is temporarily busy. Please try again.")
+                else:
+                    # Use our Smart Fallback function for a better customer experience
+                    genre = get_smart_value(data, "genre", "General")
+                    profanity = get_smart_value(data, "profanity_level", "Low")
+                    summary = get_smart_value(data, "summary", "Summary currently being processed.")
+                    themes = get_smart_value(data, "themes", ["General Interest"])
+                    audience = get_smart_value(data, "target_audience", "General")
+                    takeaways = get_smart_value(data, "takeaways", ["Reviewing core content..."])
 
-#                     # DISPLAY RESULTS
-#                     m1, m2 = st.columns(2)
-#                     m1.metric("Content Classification", genre)
-#                     m2.metric("Safety Rating", profanity)
+                    # DISPLAY RESULTS
+                    m1, m2 = st.columns(2)
+                    m1.metric("Content Classification", genre)
+                    m2.metric("Safety Rating", profanity)
                     
-#                     st.markdown("### Executive Summary")
-#                     st.write(summary)
+                    st.markdown("### Executive Summary")
+                    st.write(summary)
                     
-#                     st.markdown("### Primary Themes")
-#                     st.info(", ".join(themes) if isinstance(themes, list) else themes)
+                    st.markdown("### Primary Themes")
+                    st.info(", ".join(themes) if isinstance(themes, list) else themes)
                     
-#                     st.markdown("### Demographic Alignment")
-#                     st.success(f"Primary Audience: {audience}")
+                    st.markdown("### Demographic Alignment")
+                    st.success(f"Primary Audience: {audience}")
                     
-#                     st.markdown("### Key Insights")
-#                     for item in takeaways:
-#                         st.write(f"• {item}")
+                    st.markdown("### Key Insights")
+                    for item in takeaways:
+                        st.write(f"• {item}")
 
-# # 5. FOOTER
-# st.markdown("---")
-# st.caption("Powered by Lumina Neural Engine | v1.2")
+# 5. FOOTER
+st.markdown("---")
+st.caption("Powered by Lumina Neural Engine | v1.2")
 
 
 # import streamlit as st
